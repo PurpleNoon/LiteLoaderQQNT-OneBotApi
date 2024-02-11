@@ -60,6 +60,7 @@ export interface OB11Return<DataType> {
     retcode: number
     data: DataType
     message: string
+    // echo?: string
 }
 
 export interface OB11SendMsgReturn extends OB11Return<{message_id: string}>{}

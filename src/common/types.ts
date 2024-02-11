@@ -129,12 +129,12 @@ export interface PostDataSendMsg {
     action: OB11ApiName
     message_type?: "private" | "group"
     params?: {
-        user_id: string,
-        group_id: string,
+        user_id?: string,
+        group_id?: string,
         message: OB11MessageData[];
     },
-    user_id: string,
-    group_id: string,
+    user_id?: string,
+    group_id?: string,
     message?: OB11MessageData[];
     ipc_uuid?: string
 }
@@ -146,5 +146,6 @@ export interface Config {
     debug?: boolean
     reportSelfMessage?: boolean
     log?: boolean
+    wsReverseAddress?: string
+    wsReconnectTime?: number // 单位 ms
 }
-

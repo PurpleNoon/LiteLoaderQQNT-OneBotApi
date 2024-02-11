@@ -123,7 +123,7 @@ export class OB11Construct {
         return {
             4: OB11GroupMemberRole.owner,
             3: OB11GroupMemberRole.admin,
-            2: OB11GroupMemberRole.member
-        }[role]
+            2: OB11GroupMemberRole.member,
+        }[role] || OB11GroupMemberRole.member
     }
 }

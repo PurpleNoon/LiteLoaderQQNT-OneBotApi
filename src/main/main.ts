@@ -4,7 +4,14 @@ import * as path from "path";
 import {BrowserWindow, ipcMain} from 'electron';
 import * as util from 'util';
 
-import {Config, Group, RawMessage, SelfInfo, User} from "../common/types";
+import {
+    Config,
+    Group,
+    RawMessage,
+    SelfInfo,
+    User,
+    MessageElement,
+} from "../common/types";
 import {
     CHANNEL_DOWNLOAD_FILE,
     CHANNEL_GET_CONFIG,
@@ -14,7 +21,13 @@ import {
     CHANNEL_SET_CONFIG,
     CHANNEL_START_HTTP_SERVER,
     CHANNEL_UPDATE_FRIENDS,
-    CHANNEL_UPDATE_GROUPS, CHANNEL_DELETE_FILE, CHANNEL_GET_RUNNING_STATUS, CHANNEL_FILE2BASE64, CHANNEL_GET_HISTORY_MSG
+    CHANNEL_UPDATE_GROUPS,
+    CHANNEL_DELETE_FILE,
+    CHANNEL_GET_RUNNING_STATUS,
+    CHANNEL_FILE2BASE64,
+    CHANNEL_GET_HISTORY_MSG,
+    CHANNEL_SEND_NEW_MESSAGE_TO_MAIN,
+    CHANNEL_INSERT_MESSAGE_HISTORY,
 } from "../common/channels";
 import {ConfigUtil} from "../common/config";
 import {postMsg, startExpress} from "../server/httpserver";
@@ -23,11 +36,31 @@ import {friends, groups, msgHistory, selfInfo} from "../common/data";
 import {} from "../global";
 import {hookNTQQApiReceive, ReceiveCmd, registerReceiveHook} from "../ntqqapi/hook";
 import {OB11Construct} from "../onebot11/construct";
+import { convertMessageToEvent } from "./bot/events";
+import { sendIPCMsg } from "./IPCSend";
+import WebsocketDriver from "./bot/drivers/ws";
 
 const fs = require('fs');
 
 let running = false;
 
+
+const ws = new WebsocketDriver()
+
+async function sendWs<T>(data: T) {
+    await ws.send(data)
+}
+
+function sendHttp<T>(data: T) {
+    // 缺一个是否启用 http 的判断（因为没有没有这个配置
+    // 暂时注释，专心调 ws
+    // window.llonebot.postData(data);
+}
+
+function sendData<T>(data: T) {
+    sendHttp(data)
+    sendWs(data)
+}
 
 // 加载插件时触发
 function onLoad() {
@@ -37,7 +70,7 @@ function onLoad() {
 
 
     if (!fs.existsSync(CONFIG_DIR)) {
-        fs.mkdirSync(CONFIG_DIR, {recursive: true});
+        fs.mkdirSync(CONFIG_DIR, { recursive: true });
     }
     ipcMain.handle(CHANNEL_GET_CONFIG, (event: any, arg: any) => {
         return getConfigUtil().getConfig()
@@ -84,7 +117,7 @@ function onLoad() {
                 }
             }
         }
-        else{
+        else {
             return {
                 success: false,
                 errMsg: `不支持的file协议,` + url.protocol,
@@ -204,6 +237,16 @@ function onLoad() {
             postRawMsg([payload.msgRecord]);
         } catch (e) {
             log("report self message error: ", e.toString())
+        }
+    })
+
+    ws.init()
+
+    ipcMain.on(CHANNEL_SEND_NEW_MESSAGE_TO_MAIN, async (event, msg: MessageElement) => {
+        const eventData = await convertMessageToEvent(msg)
+        sendIPCMsg(CHANNEL_INSERT_MESSAGE_HISTORY, msg)
+        if (eventData) {
+            sendData(eventData)
         }
     })
 }

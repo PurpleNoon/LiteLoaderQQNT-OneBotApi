@@ -1,0 +1,56 @@
+
+### testmsg
+# POST http://127.0.0.1:5000/onebot/v11/ HTTP/1.1
+POST http://127.0.0.1:3000/send_group_msg
+content-type: application/json
+
+{
+    "group_id": "687454506",
+    "message": [
+        {
+            "type": "text",
+            "data": {
+                "text": "msg"
+            }
+        }
+    ]
+}
+
+### 上报事件
+POST http://127.0.0.1:5000/onebot/v11/
+Content-Type: application/json
+x-self-id: 2435658320
+
+{
+    "self": {
+        "platform": "qq",
+        "user_id": "2435658320"
+    },
+    "self_id": "2435658320",
+    "time": 0,
+    "type": "message",
+    "post_type": "message",
+    "message_type": "group",
+    "detail_type": "group",
+    "message_id": "7327911062756138927",
+    "sub_type": "",
+    "message": [
+        {
+            "data": {
+                "text": "/帮助"
+            },
+            "type": "text"
+        }
+    ],
+    "raw_message": "",
+    "font": 14,
+    "group_id": "687454506",
+    "user_id": "346014945",
+    "sender": {
+        "user_id": "346014945",
+        "nickname": "泪随樱花落",
+        "card": "",
+        "role": "owner"
+    }
+}
+
